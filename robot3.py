@@ -73,10 +73,10 @@ class Robot():
 
 		self.verrins = [Verrin(dmax),Verrin(dmax),Verrin(dmax),Verrin(dmax)]
 		self.d_verrins = [0,0,0,0]
-		self.saveAngles = [0,0]
 		self.prevMove = 0
 		self.distance = 0
 		self.n = 0
+		self.direct = ''
 
 
 	def sumDist(self):
@@ -89,16 +89,18 @@ class Robot():
 			
 
 			if self.d_verrins[2] < self.d_verrins[3]:
-				return -((self.verrins[0].getLength()-self.d_verrins[0]) + (self.verrins[2].getLength()-self.d_verrins[2]))
+				return ((self.verrins[0].getLength()-self.d_verrins[0]) + (self.verrins[2].getLength()-self.d_verrins[2]))
 			else:
-				return -((self.verrins[0].getLength()-self.d_verrins[0]) + (self.verrins[3].getLength()-self.d_verrins[3]))
+				return ((self.verrins[0].getLength()-self.d_verrins[0]) + (self.verrins[3].getLength()-self.d_verrins[3]))
 
 		else:
 			print("somme dist angle +")
 			if self.d_verrins[2] < self.d_verrins[3]:
-				return -((self.verrins[1].getLength()-self.d_verrins[1]) + (self.verrins[2].getLength()-self.d_verrins[2]))
+				print(((self.verrins[1].getLength()-self.d_verrins[1]) + (self.verrins[2].getLength()-self.d_verrins[2])))
+				return ((self.verrins[1].getLength()-self.d_verrins[1]) + (self.verrins[2].getLength()-self.d_verrins[2]))
 			else:
-				return -((self.verrins[1].getLength()-self.d_verrins[1]) + (self.verrins[3].getLength()-self.d_verrins[3]))
+				print(((self.verrins[1].getLength()-self.d_verrins[1]) + (self.verrins[3].getLength()-self.d_verrins[3])))
+				return ((self.verrins[1].getLength()-self.d_verrins[1]) + (self.verrins[3].getLength()-self.d_verrins[3]))
 
 	def angleMeasurements(self):
 		""" pour voir indexation des verrins consulté le schéma explicatif
@@ -114,23 +116,23 @@ class Robot():
 		if self.verrins[2].getLength() != self.verrins[3].getLength() :
 			self.angles[1] = math.atan((self.verrins[2].getLength()-self.verrins[3].getLength())/self.d_vv)
 
-	def measureRotation(self,direct):
+	def measureRotation(self):
 		print("measureRotation")
 		if self.roll == 0:
-			if direct == "f":
-				self.yaw += (self.angles[0]-self.saveAngles[0])
+			if self.direct == "f":
+				self.yaw += (self.angles[0])
 			else:
-				self.yaw += (self.angles[1]-self.saveAngles[1])
+				self.yaw += (self.angles[1])
 
 		else:
-			if direct == "f":
-				print(self.angles[0]-self.saveAngles[0])
-				print(math.tan(self.angles[0]-self.saveAngles[0]))
-				self.pitch += (math.atan(math.tan(self.angles[0]-self.saveAngles[0])*math.sin(self.roll)))
-				self.yaw   += (math.atan(math.tan(self.angles[0]-self.saveAngles[0])*math.cos(self.roll)))
+			if self.direct == "f":
+				print(self.angles[0])
+				print(math.tan(self.angles[0]))
+				self.pitch += (math.atan(math.tan(self.angles[0])*math.sin(self.roll)))
+				self.yaw   += (math.atan(math.tan(self.angles[0])*math.cos(self.roll)))
 			else:
-				self.pitch += (math.atan(math.tan(self.angles[1]-self.saveAngles[1])*math.sin(self.roll)))
-				self.yaw   += (math.atan(math.tan(self.angles[1]-self.saveAngles[1])*math.cos(self.roll)))
+				self.pitch += (math.atan(math.tan(self.angles[1])*math.sin(self.roll)))
+				self.yaw   += (math.atan(math.tan(self.angles[1])*math.cos(self.roll)))
 
 	def distMeasure(self):
 		print("mesure distance")
@@ -145,11 +147,12 @@ class Robot():
 
 	def move(self,direct):
 		print("déplacement")
+		self.direct = direct
 		self.prevMove = 0
 	
 		#d_rest=distance-self.distance
 		#print("distance restante = " + str(d_rest))
-		if direct == "f":
+		if self.direct == "f":
 			print("begin cycle")
 			self.module_avant.Unblock()
 			self.module_avant.showBlockState()
@@ -162,14 +165,13 @@ class Robot():
 			self.angleMeasurements()
 
 			if self.verrins[1]!=self.verrins[0]:
-				self.measureRotation(direct)
-			self.saveAngles()
+				self.measureRotation()
 
 			self.showAngles()
 			self.showRotation()
 			self.showActuator()
-			self.saveActuatorLength()
-			self.distMeasure()
+			#self.distMeasure()
+			#self.saveActuatorLength()
 			self.ShowDistMeasure()
 			self.module_avant.Block()
 			self.module_avant.showBlockState()
@@ -183,6 +185,7 @@ class Robot():
 				for i in self.verrins:
 					dr = float(input("enter return distance for actuator number "+str(j)+"\n"))
 					i.move(-dr)
+					self.d_verrins[j-1]  = dr 
 					j+=1
 			else:
 				j=0
@@ -193,12 +196,12 @@ class Robot():
 			#self.angleMeasurements()
 			self.showAngles()
 			self.showRotation()
-			self.updatePrevMove(direct)
+			self.updatePrevMove()
 			self.showPrevMove()
 			self.showActuator()
 			self.distMeasure()
 			self.ShowDistMeasure()
-			self.saveActuatorLength()
+			#self.saveActuatorLength()
 			self.module_arriere.Block()
 			self.module_arriere.showBlockState()
 			self.n +=1
@@ -219,13 +222,12 @@ class Robot():
 			self.angleMeasurements()
 
 			if self.verrins[3]!=self.verrins[2]:
-				self.measureRotation(direct)
-			self.saveAngles()
-			
+				self.measureRotation()
+
 			self.showAngles()
 			self.showRotation()
 			self.showActuator()
-			self.updatePrevMove(direct)
+			self.updatePrevMove()
 			self.saveActuatorLength()
 			self.distMeasure()
 			self.showPrevMove()
@@ -279,20 +281,15 @@ class Robot():
 	def getRotation(self):
 		return(self.roll,self.pitch,self.yaw)
 
-	def updatePrevMove(self,direct):
-		if direct == "f":
+	def updatePrevMove(self):
+		if self.direct == "f":
 			print("fuu")
 			self.prevMove= self.sumDist()
 		else:
-			self.prevMove= -self.sumDist()
+			self.prevMove= self.sumDist()
 
 	def showPrevMove(self):
 		print("prev move =" + str(self.prevMove))
-
-	def saveAngles(self):
-		j=0
-		for i in self.angles:
-			self.saveAngles[j]= i
 
 	def saveActuatorLength(self):
 		print("sauvegarde longueurs")

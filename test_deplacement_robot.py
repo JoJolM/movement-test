@@ -15,13 +15,14 @@ def main():
 			ROB.move(direction)
 		if order == "roll":
 			ROB.showRotation()
-			degrees = int(input("input roll angle in °\n"))
+			degrees = float(input("input roll angle in °\n"))
 			ROB.Roll(degrees)
 
 		if order == "quit":
 			quit = True
-		ROB.showPrevMove()
-		geo.Update()
+		if not quit: 
+			geo.Update()
+
 		geo.displayCoords()
 		
 	print(ROB.distance)
